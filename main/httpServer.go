@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -15,19 +16,19 @@ type Pxy struct {
 
 // 设置type
 type Cfg struct {
-	Addr        string   // 监听地址
-	Port        string   // 监听端口
-	IsAnonymous bool     // 高匿名模式
-	Debug       bool     // 调试模式
+	Addr        string // 监听地址
+	Port        string // 监听端口
+	IsAnonymous bool   // 高匿名模式
+	Debug       bool   // 调试模式
 }
 
 func main() {
 
 	// 参数
-	faddr := flag.String("addr","0.0.0.0","监听地址，默认0.0.0.0")
-	fprot := flag.String("port","8080","监听端口，默认8080")
-	fanonymous :=  flag.Bool("anonymous",true,"高匿名，默认高匿名")
-	fdebug :=  flag.Bool("debug",false,"调试模式显示更多信息，默认关闭")
+	faddr := flag.String("addr", "0.0.0.0", "监听地址，默认0.0.0.0")
+	fprot := flag.String("port", "65080", "监听端口，默认8080")
+	fanonymous := flag.Bool("anonymous", true, "高匿名，默认高匿名")
+	fdebug := flag.Bool("debug", true, "调试模式显示更多信息，默认关闭")
 	flag.Parse()
 
 	cfg := &Cfg{}
@@ -47,7 +48,6 @@ func Run(cfg *Cfg) {
 	bindAddr := cfg.Addr + ":" + cfg.Port
 	log.Fatalln(http.ListenAndServe(bindAddr, pxy))
 }
-
 
 // 实例化
 func NewPxy() *Pxy {
@@ -80,12 +80,6 @@ func (p *Pxy) SetPxyCfg(cfg *Cfg) {
 
 // 运行代理服务
 func (p *Pxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	// debug
-	if p.Cfg.Debug {
-		log.Printf("Received request %s %s %s\n", req.Method, req.Host, req.RemoteAddr)
-		// fmt.Println(req)
-	}
-
 	// http && https
 	if req.Method != "CONNECT" {
 		// 处理http
@@ -95,7 +89,17 @@ func (p *Pxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		// 直通模式不做任何中间处理
 		p.HTTPS(rw, req)
 	}
-
+	log.Println(req.Method, req.URL, req.Proto)
+	for k, v := range req.Header {
+		log.Println(k+":", v[0])
+	}
+	// debug
+	if p.Cfg.Debug {
+		log.Println()
+		body, _ := ioutil.ReadAll(req.Body)
+		log.Println(string(body))
+		log.Println()
+	}
 }
 
 // http
@@ -138,7 +142,6 @@ func (p *Pxy) HTTP(rw http.ResponseWriter, req *http.Request) {
 	io.Copy(rw, res.Body)
 	res.Body.Close()
 }
-
 
 // https
 func (p *Pxy) HTTPS(rw http.ResponseWriter, req *http.Request) {
