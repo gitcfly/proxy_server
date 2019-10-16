@@ -28,7 +28,7 @@ func main() {
 	faddr := flag.String("addr", "0.0.0.0", "监听地址，默认0.0.0.0")
 	fprot := flag.String("port", "65080", "监听端口，默认8080")
 	fanonymous := flag.Bool("anonymous", true, "高匿名，默认高匿名")
-	fdebug := flag.Bool("debug", true, "调试模式显示更多信息，默认关闭")
+	fdebug := flag.Bool("debug", false, "调试模式显示更多信息，默认关闭")
 	flag.Parse()
 
 	cfg := &Cfg{}
@@ -89,12 +89,12 @@ func (p *Pxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		// 直通模式不做任何中间处理
 		p.HTTPS(rw, req)
 	}
-	log.Println(req.Method, req.URL, req.Proto)
-	for k, v := range req.Header {
-		log.Println(k+":", v[0])
-	}
 	// debug
 	if p.Cfg.Debug {
+		log.Println(req.Method, req.URL, req.Proto)
+		for k, v := range req.Header {
+			log.Println(k+":", v[0])
+		}
 		log.Println()
 		body, _ := ioutil.ReadAll(req.Body)
 		log.Println(string(body))
