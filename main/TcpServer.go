@@ -7,21 +7,23 @@ import (
 
 //go-tcpsock/server.go
 func handleConn(c net.Conn) {
-	defer c.Close()
-	fmt.Println("Recive a new connetion src address: %v", c.RemoteAddr().String())
-	var packt = make([]byte, 65535)
-	for {
-		_, err := c.Read(packt)
-		if err != nil {
-			break
-		}
-		fmt.Println(string(packt))
-		_, err = c.Write([]byte("hello client,i am server!"))
-		if err != nil {
-			break
-		}
+	defer func() {
+		c.Close()
+		fmt.Printf("Close a connetion src address: %v \n\n", c.RemoteAddr().String())
+	}()
+	fmt.Printf("Recive a new connetion src address: %v \n", c.RemoteAddr().String())
+	var data = make([]byte, 65500)
+	len, err := c.Read(data)
+	if err != nil {
+		fmt.Println(err)
 	}
-	fmt.Println("Close a connetion src address: %v", c.RemoteAddr().String())
+	if len > 0 {
+		fmt.Println(string(data))
+	}
+	_, err = c.Write([]byte("hello client,i am server!"))
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func main() {
