@@ -8,6 +8,7 @@ import (
 //go-tcpsock/server.go
 func handleConn(c net.Conn) {
 	defer c.Close()
+	fmt.Println("Recive a new connetion")
 	var packt = make([]byte, 65535)
 	for {
 		_, err := c.Read(packt)
@@ -20,6 +21,7 @@ func handleConn(c net.Conn) {
 			break
 		}
 	}
+	fmt.Println("Close a connetion")
 }
 
 func main() {
