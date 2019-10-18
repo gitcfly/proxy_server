@@ -8,7 +8,7 @@ import (
 //go-tcpsock/server.go
 func handleConn(c net.Conn) {
 	defer c.Close()
-	fmt.Println("Recive a new connetion")
+	fmt.Println("Recive a new connetion src address: %v", c.RemoteAddr().String())
 	var packt = make([]byte, 65535)
 	for {
 		_, err := c.Read(packt)
@@ -21,7 +21,7 @@ func handleConn(c net.Conn) {
 			break
 		}
 	}
-	fmt.Println("Close a connetion")
+	fmt.Println("Close a connetion src address: %v", c.RemoteAddr().String())
 }
 
 func main() {
